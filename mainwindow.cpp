@@ -4,11 +4,12 @@
 void MainWindow::on_currentRowChanged(const QModelIndex &currrent, const QModelIndex &previous)
 {
     dataMapper->setCurrentIndex(currrent.row());
-}
-
-void MainWindow::getVaccined(const QModelIndex &index)
-{
-    index.model()->data(index.model()->index(index.row(),tabModel->fieldIndex("isVaccined")),Qt::EditRole).setValue(index.model()->data(index.model()->index(index.row(),tabModel->fieldIndex("isVaccined")),Qt::EditRole).toInt()+1);
+    QSqlRecord curRec = tabModel->record(currrent.row());
+    if(curRec.value("isVaccined").toInt() == 2)
+        ui->actGetVac->setEnabled(0);
+    else
+        ui->actGetVac->setEnabled(1);
+    statusLab.setText(curRec.value("name").toString() + QString(" %1").arg(curRec.value("years").toInt())+ " " + vacList[curRec.value("isVaccined").toInt()]);
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -24,8 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     sexDel = new QComboBoxDelegate(strList,this);
     ageDel = new QIntSpinBoxDelegate(this);
     vacDel = new QisVaccineDeldgate(this);
-    gVacDel = new QgetVaccinedDelegate(this);
-    connect(gVacDel,SIGNAL(clicked(QModelIndex)),this,SLOT(getVaccined(QModelIndex)));
+    ui->statusBar->addWidget(&statusLab);
 }
 
 MainWindow::~MainWindow()
@@ -67,9 +67,8 @@ void MainWindow::openTable()
     tabModel->setHeaderData(tabModel->fieldIndex("sex"),Qt::Horizontal,"性别");
     tabModel->setHeaderData(tabModel->fieldIndex("tel"),Qt::Horizontal,"电话");
     tabModel->setHeaderData(tabModel->fieldIndex("addr"),Qt::Horizontal,"地址");
-    tabModel->setHeaderData(tabModel->fieldIndex("isVaccined"),Qt::Horizontal,"是否接种");
+    //tabModel->setHeaderData(tabModel->fieldIndex("isVaccined"),Qt::Horizontal,"是否接种");
     tabModel->setHeaderData(tabModel->fieldIndex("time"),Qt::Horizontal,"接种时间");
-    tabModel->setHeaderData(tabModel->fieldIndex("getVaccined"),Qt::Horizontal," ");
     theSel = new QItemSelectionModel(tabModel);
     //connect(theSel,SIGNAL(currentChanged(QModelIndex,QModelIndex)),this,SLOT(on_currentChanged(QModelIndex,QModelIndex)));
     connect(theSel,SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),this,SLOT(on_currentRowChanged(QModelIndex,QModelIndex)));
@@ -77,8 +76,7 @@ void MainWindow::openTable()
     ui->tableView->setSelectionModel(theSel);
     ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("years"),ageDel);
     ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("sex"),sexDel);
-    ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("isVaccined"),vacDel);
-    ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("getVaccined"),gVacDel);
+   // ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("isVaccined"),vacDel);
     dataMapper = new QDataWidgetMapper();
     dataMapper->setModel(tabModel);
     dataMapper->setSubmitPolicy(QDataWidgetMapper::AutoSubmit);
@@ -98,3 +96,15 @@ void MainWindow::getFileName()
         ui->sortCom->addItem(emptyRec.fieldName(i));
     }
 }
+
+
+void MainWindow::on_actGetVac_triggered()
+{
+    QSqlRecord curRec = tabModel->record(ui->tableView->currentIndex().row());
+    int isVac = curRec.value("isVaccined").toInt();
+    isVac++;
+    curRec.setValue("isVaccined",isVac);
+    tabModel->setRecord(ui->tableView->currentIndex().row(),curRec);
+    on_currentRowChanged(ui->tableView->currentIndex(),ui->tableView->rootIndex());
+}
+

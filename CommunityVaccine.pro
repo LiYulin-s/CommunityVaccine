@@ -11,14 +11,12 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     qcomboboxdelegate.cpp \
-    qgetvaccineddelegate.cpp \
     qintspinboxdelegate.cpp \
     qisvaccinedeldgate.cpp
 
 HEADERS += \
     mainwindow.h \
     qcomboboxdelegate.h \
-    qgetvaccineddelegate.h \
     qintspinboxdelegate.h \
     qisvaccinedeldgate.h
 

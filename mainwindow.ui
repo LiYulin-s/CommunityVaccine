@@ -97,11 +97,13 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actOpen"/>
+   <addaction name="actGetVac"/>
    <addaction name="actAdd"/>
    <addaction name="actRemove"/>
    <addaction name="actCheckV"/>
    <addaction name="actAddV"/>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actAdd">
    <property name="text">
     <string>添加成员</string>
@@ -125,6 +127,11 @@
   <action name="actAddV">
    <property name="text">
     <string>添加疫苗</string>
+   </property>
+  </action>
+  <action name="actGetVac">
+   <property name="text">
+    <string>注射疫苗</string>
    </property>
   </action>
  </widget>

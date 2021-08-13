@@ -6,11 +6,11 @@
 #include <QDataWidgetMapper>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QLabel>
 
 #include "qcomboboxdelegate.h"
 #include "qintspinboxdelegate.h"
 #include "qisvaccinedeldgate.h"
-#include "qgetvaccineddelegate.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -22,7 +22,6 @@ class MainWindow : public QMainWindow
 public slots:
     //void on_currentChanged(const QModelIndex &currrent,const QModelIndex &previous);
     void on_currentRowChanged(const QModelIndex &currrent,const QModelIndex &previous);
-    void getVaccined(const QModelIndex &index);
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -30,6 +29,8 @@ public:
 
 private slots:
     void on_actOpen_triggered();
+
+    void on_actGetVac_triggered();
 
 private:
     Ui::MainWindow *ui;
@@ -42,6 +43,7 @@ private:
     QComboBoxDelegate * sexDel;
     QIntSpinBoxDelegate * ageDel;
     QisVaccineDeldgate * vacDel;
-    QgetVaccinedDelegate * gVacDel;
+    QLabel statusLab;
+    QStringList vacList = {"未接种","已接种1针","已接种2针"};
 };
 #endif // MAINWINDOW_H
