@@ -67,7 +67,6 @@ void MainWindow::openTable()
     tabModel->setHeaderData(tabModel->fieldIndex("sex"),Qt::Horizontal,"性别");
     tabModel->setHeaderData(tabModel->fieldIndex("tel"),Qt::Horizontal,"电话");
     tabModel->setHeaderData(tabModel->fieldIndex("addr"),Qt::Horizontal,"地址");
-    //tabModel->setHeaderData(tabModel->fieldIndex("isVaccined"),Qt::Horizontal,"是否接种");
     tabModel->setHeaderData(tabModel->fieldIndex("time"),Qt::Horizontal,"接种时间");
     theSel = new QItemSelectionModel(tabModel);
     //connect(theSel,SIGNAL(currentChanged(QModelIndex,QModelIndex)),this,SLOT(on_currentChanged(QModelIndex,QModelIndex)));
@@ -85,6 +84,7 @@ void MainWindow::openTable()
     //dataMapper->addMapping(ui->telEdit,tabModel->fieldIndex("tel"));
     //dataMapper->addMapping(ui->sexCom,tabModel->fieldIndex("sex"));
     //dataMapper->toFirst();
+    ui->tableView->setColumnHidden(tabModel->fieldIndex("isVaccined"),1);
     getFileName();
 }
 
