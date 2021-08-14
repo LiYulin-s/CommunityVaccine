@@ -108,6 +108,7 @@ void MainWindow::getFileName()
     for (int i = 0;i <emptyRec.count() ;i++ )
     {
         ui->sortCom->addItem(emptyRec.fieldName(i));
+        ui->searchCom->addItem(emptyRec.fieldName(i));
     }
 }
 
@@ -179,5 +180,23 @@ void MainWindow::on_ascRadio_clicked()
 void MainWindow::on_decRadio_clicked()
 {
     on_sortCom_currentIndexChanged(ui->sortCom->currentIndex());
+}
+
+
+void MainWindow::on_searchButton_clicked()
+{
+    if(ui->searchEdit->text().isEmpty())
+    {
+        tabModel->setFilter("");
+        tabModel->select();
+    }
+    else
+        tabModel->setFilter(ui->searchCom->currentText() + "=" + + '\'' + ui->searchEdit->text() + '\'');
+}
+
+
+void MainWindow::on_searchEdit_textChanged(const QString &arg1)
+{
+    on_searchButton_clicked();
 }
 

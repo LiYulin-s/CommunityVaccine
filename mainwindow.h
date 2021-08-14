@@ -46,6 +46,10 @@ private slots:
 
     void on_decRadio_clicked();
 
+    void on_searchButton_clicked();
+
+    void on_searchEdit_textChanged(const QString &arg1);
+
 private:
     Ui::MainWindow *ui;
     QSqlDatabase DB;
