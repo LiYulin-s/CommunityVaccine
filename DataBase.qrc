@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/db">
-        <file>Community.db</file>
-    </qresource>
-</RCC>

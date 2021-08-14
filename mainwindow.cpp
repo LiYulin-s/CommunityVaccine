@@ -1,6 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+void MainWindow::on_currentChanged(const QModelIndex &currrent, const QModelIndex &previous)
+{
+    ui->actCommit->setEnabled(tabModel->isDirty());
+    ui->actGiveUp->setEnabled(tabModel->isDirty());
+}
+
 void MainWindow::on_currentRowChanged(const QModelIndex &currrent, const QModelIndex &previous)
 {
     dataMapper->setCurrentIndex(currrent.row());
@@ -26,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
     ageDel = new QIntSpinBoxDelegate(this);
     vacDel = new QisVaccineDeldgate(this);
     ui->statusBar->addWidget(&statusLab);
+    on_actRefresh_triggered();
 }
 
 MainWindow::~MainWindow()
@@ -35,17 +42,24 @@ MainWindow::~MainWindow()
     delete ageDel;
 }
 
-void MainWindow::on_actOpen_triggered()
+void MainWindow::on_actRefresh_triggered()
 {
-    QString aFile = QFileDialog::getOpenFileName(this,"选择数据库文件","","*.db");
+    /*QString aFile = QFileDialog::getOpenFileName(this,"选择数据库文件","","*.db");
     if(aFile.isEmpty())return;
     DB = QSqlDatabase::addDatabase("QSQLITE");
-    DB.setDatabaseName(aFile);
+    DB.setDatabaseName("aFile");*/
+    DB = QSqlDatabase::addDatabase("QMYSQL");
+    DB.setHostName("sql.wsfdb.cn");
+    DB.setUserName("2278Community");
+    DB.setDatabaseName("2278community");
+    DB.setPassword("5817518");
+    DB.setPort(3306);
     if(!DB.open())
     {
         QMessageBox::warning(this,"失败","打开数据库失败");
         return;
     }
+    DB.exec("SET character_set_server = utf8;");
     openTable();
 
 }
@@ -55,7 +69,7 @@ void MainWindow::openTable()
     tabModel = new QSqlTableModel(this,DB);
     tabModel->setTable("person");
     tabModel->setSort(tabModel->fieldIndex("ID"),Qt::AscendingOrder);
-    tabModel->setEditStrategy(QSqlTableModel::OnRowChange);
+    tabModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
     if(!(tabModel->select()))
     {
         QMessageBox::critical(this,"错误",tabModel->lastError().text());
@@ -69,7 +83,7 @@ void MainWindow::openTable()
     tabModel->setHeaderData(tabModel->fieldIndex("addr"),Qt::Horizontal,"地址");
     tabModel->setHeaderData(tabModel->fieldIndex("time"),Qt::Horizontal,"接种时间");
     theSel = new QItemSelectionModel(tabModel);
-    //connect(theSel,SIGNAL(currentChanged(QModelIndex,QModelIndex)),this,SLOT(on_currentChanged(QModelIndex,QModelIndex)));
+    connect(theSel,SIGNAL(currentChanged(QModelIndex,QModelIndex)),this,SLOT(on_currentChanged(QModelIndex,QModelIndex)));
     connect(theSel,SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),this,SLOT(on_currentRowChanged(QModelIndex,QModelIndex)));
     ui->tableView->setModel(tabModel);
     ui->tableView->setSelectionModel(theSel);
@@ -106,5 +120,64 @@ void MainWindow::on_actGetVac_triggered()
     curRec.setValue("isVaccined",isVac);
     tabModel->setRecord(ui->tableView->currentIndex().row(),curRec);
     on_currentRowChanged(ui->tableView->currentIndex(),ui->tableView->rootIndex());
+}
+
+
+void MainWindow::on_actAdd_triggered()
+{
+    tabModel->insertRow(tabModel->rowCount(),QModelIndex());
+    QModelIndex curIndex = tabModel->index(tabModel->rowCount() - 1,1);
+    theSel->clearSelection();
+    theSel->setCurrentIndex(curIndex,QItemSelectionModel::Select);
+}
+
+
+void MainWindow::on_actCommit_triggered()
+{
+    bool res = tabModel->submitAll();
+    if(!res)
+    {
+        QMessageBox::critical(this,"提交错误",tabModel->lastError().text());
+    }
+    else
+    {
+        ui->actCommit->setEnabled(false);
+        ui->actGiveUp->setEnabled(false);
+    }
+}
+
+
+void MainWindow::on_actGiveUp_triggered()
+{
+    tabModel->revertAll();
+    ui->actCommit->setEnabled(false);
+    ui->actGiveUp->setEnabled(false);
+}
+
+
+void MainWindow::on_actRemove_triggered()
+{
+    tabModel->removeRow(theSel->currentIndex().row());
+}
+
+void MainWindow::on_sortCom_currentIndexChanged(int index)
+{
+    if(ui->ascRadio->isChecked())
+        tabModel->setSort(index,Qt::AscendingOrder);
+    else
+        tabModel->setSort(index,Qt::DescendingOrder);
+    tabModel->select();
+}
+
+
+void MainWindow::on_ascRadio_clicked()
+{
+    on_sortCom_currentIndexChanged(ui->sortCom->currentIndex());
+}
+
+
+void MainWindow::on_decRadio_clicked()
+{
+    on_sortCom_currentIndexChanged(ui->sortCom->currentIndex());
 }
 

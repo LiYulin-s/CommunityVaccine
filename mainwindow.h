@@ -20,7 +20,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public slots:
-    //void on_currentChanged(const QModelIndex &currrent,const QModelIndex &previous);
+    void on_currentChanged(const QModelIndex &currrent,const QModelIndex &previous);
     void on_currentRowChanged(const QModelIndex &currrent,const QModelIndex &previous);
 
 public:
@@ -28,9 +28,23 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_actOpen_triggered();
+    void on_actRefresh_triggered();
 
     void on_actGetVac_triggered();
+
+    void on_actAdd_triggered();
+
+    void on_actCommit_triggered();
+
+    void on_actGiveUp_triggered();
+
+    void on_actRemove_triggered();
+
+    void on_sortCom_currentIndexChanged(int index);
+
+    void on_ascRadio_clicked();
+
+    void on_decRadio_clicked();
 
 private:
     Ui::MainWindow *ui;
