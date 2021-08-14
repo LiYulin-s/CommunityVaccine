@@ -9,13 +9,15 @@ void MainWindow::on_currentChanged(const QModelIndex &currrent, const QModelInde
 
 void MainWindow::on_currentRowChanged(const QModelIndex &currrent, const QModelIndex &previous)
 {
+
     dataMapper->setCurrentIndex(currrent.row());
     QSqlRecord curRec = tabModel->record(currrent.row());
-    if(curRec.value("isVaccined").toInt() == 2)
+    if(curRec.value("isVaccined").toInt() == vacTimes[curRec.value("vacType").toInt()])
         ui->actGetVac->setEnabled(0);
     else
         ui->actGetVac->setEnabled(1);
-    statusLab.setText(curRec.value("name").toString() + QString(" %1").arg(curRec.value("years").toInt())+ " " + vacList[curRec.value("isVaccined").toInt()]);
+    statusLab.setText(curRec.value("name").toString() + QString(" %1").arg(curRec.value("years").toInt())+ " "
+                      + vacList[curRec.value("isVaccined").toInt()] + ' ' + curRec.value("time").toString());
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -67,7 +69,12 @@ void MainWindow::on_actRefresh_triggered()
 void MainWindow::openTable()
 {
     tabModel = new QSqlTableModel(this,DB);
+    vacModel = new QSqlTableModel(this,DB);
     tabModel->setTable("person");
+    vacModel->setTable("vaccines");
+    vacModel->setSort(tabModel->fieldIndex("ID"),Qt::AscendingOrder);
+    vacModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    vacModel->select();
     tabModel->setSort(tabModel->fieldIndex("ID"),Qt::AscendingOrder);
     tabModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
     if(!(tabModel->select()))
@@ -104,6 +111,8 @@ void MainWindow::openTable()
 
 void MainWindow::getFileName()
 {
+    ui->sortCom->clear();
+    ui->searchCom->clear();
     QSqlRecord emptyRec = tabModel->record();
     for (int i = 0;i <emptyRec.count() ;i++ )
     {
@@ -115,8 +124,26 @@ void MainWindow::getFileName()
 
 void MainWindow::on_actGetVac_triggered()
 {
+    QStringList vacList;
     QSqlRecord curRec = tabModel->record(ui->tableView->currentIndex().row());
     int isVac = curRec.value("isVaccined").toInt();
+    for(int i = 0; i < vacModel->rowCount();i++)
+    {
+         QSqlRecord vacRec = vacModel->record(i);
+         vacList.append(vacRec.value("name").toString() + ':' + vacType[vacRec.value("type").toInt()]);
+    }
+    QString choice = QInputDialog::getItem(this,"选择疫苗","注射的疫苗：",vacList);
+    for(int i = 0; i < vacModel->rowCount();i++)
+    {
+        if(vacList[i] == choice)
+           {
+
+            vacModel->record(i).setValue("total",vacModel->record(i).value("total").toInt() - 1);
+            curRec.setValue("vacType",i);
+            curRec.setValue("time",curRec.value("time").toString() + QTime::currentTime().toString("hh:mm:ss|a") + ' ');
+        }
+   }
+
     isVac++;
     curRec.setValue("isVaccined",isVac);
     tabModel->setRecord(ui->tableView->currentIndex().row(),curRec);

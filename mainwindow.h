@@ -7,6 +7,8 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QLabel>
+#include <QInputDialog>
+#include <QTime>
 
 #include "qcomboboxdelegate.h"
 #include "qintspinboxdelegate.h"
@@ -54,6 +56,7 @@ private:
     Ui::MainWindow *ui;
     QSqlDatabase DB;
     QSqlTableModel * tabModel;
+    QSqlTableModel * vacModel;
     QItemSelectionModel * theSel;
     QDataWidgetMapper * dataMapper;
     void openTable();
@@ -63,5 +66,7 @@ private:
     QisVaccineDeldgate * vacDel;
     QLabel statusLab;
     QStringList vacList = {"未接种","已接种1针","已接种2针"};
+    QStringList vacType = {"灭活","重组RNA","腺病毒"};
+    int vacTimes[4] = {2,2,3,1};
 };
 #endif // MAINWINDOW_H
