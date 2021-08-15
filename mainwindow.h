@@ -9,6 +9,8 @@
 #include <QLabel>
 #include <QInputDialog>
 #include <QTime>
+#include <QTableView>
+#include <QDateTime>
 
 #include "qcomboboxdelegate.h"
 #include "qintspinboxdelegate.h"
@@ -52,6 +54,12 @@ private slots:
 
     void on_searchEdit_textChanged(const QString &arg1);
 
+    void on_actCheckV_triggered();
+
+    void on_actAddV_triggered();
+
+    void on_actSaveV_triggered();
+
 private:
     Ui::MainWindow *ui;
     QSqlDatabase DB;
@@ -67,6 +75,9 @@ private:
     QLabel statusLab;
     QStringList vacList = {"未接种","已接种1针","已接种2针"};
     QStringList vacType = {"灭活","重组RNA","腺病毒"};
+    QTableView * view;
     int vacTimes[4] = {2,2,3,1};
+    QStringList vacnameList;
+
 };
 #endif // MAINWINDOW_H

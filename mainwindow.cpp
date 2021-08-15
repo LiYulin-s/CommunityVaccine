@@ -9,15 +9,14 @@ void MainWindow::on_currentChanged(const QModelIndex &currrent, const QModelInde
 
 void MainWindow::on_currentRowChanged(const QModelIndex &currrent, const QModelIndex &previous)
 {
-
     dataMapper->setCurrentIndex(currrent.row());
     QSqlRecord curRec = tabModel->record(currrent.row());
     if(curRec.value("isVaccined").toInt() == vacTimes[curRec.value("vacType").toInt()])
         ui->actGetVac->setEnabled(0);
     else
         ui->actGetVac->setEnabled(1);
-    statusLab.setText(curRec.value("name").toString() + QString(" %1").arg(curRec.value("years").toInt())+ " "
-                      + vacList[curRec.value("isVaccined").toInt()] + ' ' + curRec.value("time").toString());
+
+    statusLab.setText(QString("%1 %2 %3 %4 %5").arg( curRec.value("name").toString()).arg(curRec.value("years").toInt()).arg(vacList[curRec.value("isVaccined").toInt()]).arg((curRec.value("time").toString())).arg(vacnameList[curRec.value("vacType").toInt()]));
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -106,6 +105,7 @@ void MainWindow::openTable()
     //dataMapper->addMapping(ui->sexCom,tabModel->fieldIndex("sex"));
     //dataMapper->toFirst();
     ui->tableView->setColumnHidden(tabModel->fieldIndex("isVaccined"),1);
+    ui->tableView->setColumnHidden(tabModel->fieldIndex("time"),1);
     getFileName();
 }
 
@@ -119,28 +119,30 @@ void MainWindow::getFileName()
         ui->sortCom->addItem(emptyRec.fieldName(i));
         ui->searchCom->addItem(emptyRec.fieldName(i));
     }
+    for(int i = 0; i < vacModel->rowCount();i++)
+    {
+         QSqlRecord vacRec = vacModel->record(i);
+         vacnameList.append(vacRec.value("name").toString() + ':' + vacType[vacRec.value("type").toInt()]);
+    }
 }
 
 
 void MainWindow::on_actGetVac_triggered()
 {
-    QStringList vacList;
     QSqlRecord curRec = tabModel->record(ui->tableView->currentIndex().row());
     int isVac = curRec.value("isVaccined").toInt();
-    for(int i = 0; i < vacModel->rowCount();i++)
-    {
-         QSqlRecord vacRec = vacModel->record(i);
-         vacList.append(vacRec.value("name").toString() + ':' + vacType[vacRec.value("type").toInt()]);
-    }
     QString choice = QInputDialog::getItem(this,"选择疫苗","注射的疫苗：",vacList);
     for(int i = 0; i < vacModel->rowCount();i++)
     {
-        if(vacList[i] == choice)
+        if(vacnameList[i] == choice)
            {
-
-            vacModel->record(i).setValue("total",vacModel->record(i).value("total").toInt() - 1);
+            QDateTime date;
+            auto rec = vacModel->record(i);
+            rec.setValue("total",vacModel->record(i).value("total").toInt() - 1);
+            vacModel->setRecord(i,rec);
+            vacModel->submitAll();
             curRec.setValue("vacType",i);
-            curRec.setValue("time",curRec.value("time").toString() + QTime::currentTime().toString("hh:mm:ss|a") + ' ');
+            curRec.setValue("time",curRec.value("time").toString() +date.currentDateTime().toString("yyyy年m月d日") + QTime::currentTime().toString("hh:mm:ssAP") + ' ');
         }
    }
 
@@ -225,5 +227,25 @@ void MainWindow::on_searchButton_clicked()
 void MainWindow::on_searchEdit_textChanged(const QString &arg1)
 {
     on_searchButton_clicked();
+}
+
+
+void MainWindow::on_actCheckV_triggered()
+{
+    view = new QTableView();
+    view->setModel(vacModel);
+    view->show();
+}
+
+
+void MainWindow::on_actAddV_triggered()
+{
+    vacModel->insertRow(tabModel->rowCount(),QModelIndex());
+}
+
+
+void MainWindow::on_actSaveV_triggered()
+{
+    vacModel->submitAll();
 }
 

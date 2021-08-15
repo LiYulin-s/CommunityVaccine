@@ -5,12 +5,18 @@ QIntSpinBoxDelegate::QIntSpinBoxDelegate(QObject *parent) : QStyledItemDelegate(
 
 }
 
+QIntSpinBoxDelegate::QIntSpinBoxDelegate(int max_, int min_, QObject *parent)
+{
+    max = max_;
+    min = min_;
+}
+
 QWidget *QIntSpinBoxDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
     QSpinBox * editor = new QSpinBox(parent);
     editor->setFrame(false);
-    editor->setMinimum(0);
-    editor->setMaximum(100);
+    editor->setMinimum(min);
+    editor->setMaximum(max);
     return editor;
 }
 

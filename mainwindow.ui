@@ -110,6 +110,7 @@
    <addaction name="actGetVac"/>
    <addaction name="actCheckV"/>
    <addaction name="actAddV"/>
+   <addaction name="actSaveV"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actAdd">
@@ -168,6 +169,11 @@
    </property>
    <property name="shortcut">
     <string>Esc</string>
+   </property>
+  </action>
+  <action name="actSaveV">
+   <property name="text">
+    <string>保存疫苗</string>
    </property>
   </action>
  </widget>
