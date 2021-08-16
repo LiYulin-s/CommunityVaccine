@@ -19,6 +19,12 @@ void MainWindow::on_currentRowChanged(const QModelIndex &currrent, const QModelI
     statusLab.setText(QString("%1 %2 %3 %4 %5").arg( curRec.value("name").toString()).arg(curRec.value("years").toInt()).arg(vacList[curRec.value("isVaccined").toInt()]).arg((curRec.value("time").toString())).arg(vacnameList[curRec.value("vacType").toInt()]));
 }
 
+void MainWindow::on_vac_currentChanged(const QModelIndex &currrent, const QModelIndex &previous)
+{
+    ui->actCommit->setEnabled(vacModel->isDirty());
+    ui->actGiveUp->setEnabled(vacModel->isDirty());
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -32,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent)
     sexDel = new QComboBoxDelegate(strList,this);
     ageDel = new QIntSpinBoxDelegate(this);
     vacDel = new QisVaccineDeldgate(this);
+    typeDel = new QTypeDelegate(vacType,this);
     ui->statusBar->addWidget(&statusLab);
     on_actRefresh_triggered();
 }
@@ -88,13 +95,19 @@ void MainWindow::openTable()
     tabModel->setHeaderData(tabModel->fieldIndex("tel"),Qt::Horizontal,"电话");
     tabModel->setHeaderData(tabModel->fieldIndex("addr"),Qt::Horizontal,"地址");
     tabModel->setHeaderData(tabModel->fieldIndex("time"),Qt::Horizontal,"接种时间");
+    vacModel->setHeaderData(vacModel->fieldIndex("name"),Qt::Horizontal,"名称");
+    vacModel->setHeaderData(vacModel->fieldIndex("type"),Qt::Horizontal,"类型");
+    vacModel->setHeaderData(vacModel->fieldIndex("total"),Qt::Horizontal,"数量");
     theSel = new QItemSelectionModel(tabModel);
+    vacSel = new QItemSelectionModel(vacModel);
     connect(theSel,SIGNAL(currentChanged(QModelIndex,QModelIndex)),this,SLOT(on_currentChanged(QModelIndex,QModelIndex)));
+    connect(vacSel,SIGNAL(currentChanged(QModelIndex,QModelIndex)),this,SLOT(on_vac_currentChanged(QModelIndex,QModelIndex)));
     connect(theSel,SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),this,SLOT(on_currentRowChanged(QModelIndex,QModelIndex)));
     ui->tableView->setModel(tabModel);
     ui->tableView->setSelectionModel(theSel);
     ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("years"),ageDel);
     ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("sex"),sexDel);
+    ui->tableView->setItemDelegateForColumn(vacModel->fieldIndex("type"),typeDel);
    // ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("isVaccined"),vacDel);
     dataMapper = new QDataWidgetMapper();
     dataMapper->setModel(tabModel);
@@ -106,6 +119,7 @@ void MainWindow::openTable()
     //dataMapper->toFirst();
     ui->tableView->setColumnHidden(tabModel->fieldIndex("isVaccined"),1);
     ui->tableView->setColumnHidden(tabModel->fieldIndex("time"),1);
+    ui->tableView->setColumnHidden(tabModel->fieldIndex("vacType"),1);
     getFileName();
 }
 
@@ -113,7 +127,8 @@ void MainWindow::getFileName()
 {
     ui->sortCom->clear();
     ui->searchCom->clear();
-    QSqlRecord emptyRec = tabModel->record();
+    QSqlTableModel * model = static_cast<QSqlTableModel *>(ui->tableView->model());
+    QSqlRecord emptyRec = model->record();
     for (int i = 0;i <emptyRec.count() ;i++ )
     {
         ui->sortCom->addItem(emptyRec.fieldName(i));
@@ -131,17 +146,17 @@ void MainWindow::on_actGetVac_triggered()
 {
     QSqlRecord curRec = tabModel->record(ui->tableView->currentIndex().row());
     int isVac = curRec.value("isVaccined").toInt();
-    QString choice = QInputDialog::getItem(this,"选择疫苗","注射的疫苗：",vacList);
+    QString choice = QInputDialog::getItem(this,"选择疫苗","注射的疫苗：",vacnameList);
     for(int i = 0; i < vacModel->rowCount();i++)
     {
         if(vacnameList[i] == choice)
-           {
+        {
             QDateTime date;
             auto rec = vacModel->record(i);
             rec.setValue("total",vacModel->record(i).value("total").toInt() - 1);
             vacModel->setRecord(i,rec);
             vacModel->submitAll();
-            curRec.setValue("vacType",i);
+            curRec.setValue("vacType",vacType[rec.value("type").toInt()]);
             curRec.setValue("time",curRec.value("time").toString() +date.currentDateTime().toString("yyyy年m月d日") + QTime::currentTime().toString("hh:mm:ssAP") + ' ');
         }
    }
@@ -155,19 +170,29 @@ void MainWindow::on_actGetVac_triggered()
 
 void MainWindow::on_actAdd_triggered()
 {
-    tabModel->insertRow(tabModel->rowCount(),QModelIndex());
-    QModelIndex curIndex = tabModel->index(tabModel->rowCount() - 1,1);
-    theSel->clearSelection();
-    theSel->setCurrentIndex(curIndex,QItemSelectionModel::Select);
+    QSqlTableModel * model = static_cast<QSqlTableModel *>(ui->tableView->model());
+    model->insertRow(model->rowCount(),QModelIndex());
+    QModelIndex curIndex = model->index(model->rowCount() - 1,1);
+    if(model->fieldIndex("name") == 0)
+    {
+        vacSel->clearSelection();
+        vacSel->setCurrentIndex(curIndex,QItemSelectionModel::Select);
+    }
+    else
+    {
+        theSel->clearSelection();
+        theSel->setCurrentIndex(curIndex,QItemSelectionModel::Select);
+    }
 }
 
 
 void MainWindow::on_actCommit_triggered()
 {
-    bool res = tabModel->submitAll();
+    QSqlTableModel * model = static_cast<QSqlTableModel *>(ui->tableView->model());
+    bool res = model->submitAll();
     if(!res)
     {
-        QMessageBox::critical(this,"提交错误",tabModel->lastError().text());
+        QMessageBox::critical(this,"提交错误",model->lastError().text());
     }
     else
     {
@@ -179,7 +204,8 @@ void MainWindow::on_actCommit_triggered()
 
 void MainWindow::on_actGiveUp_triggered()
 {
-    tabModel->revertAll();
+    QSqlTableModel * model = static_cast<QSqlTableModel *>(ui->tableView->model());
+    model->revertAll();
     ui->actCommit->setEnabled(false);
     ui->actGiveUp->setEnabled(false);
 }
@@ -187,16 +213,18 @@ void MainWindow::on_actGiveUp_triggered()
 
 void MainWindow::on_actRemove_triggered()
 {
-    tabModel->removeRow(theSel->currentIndex().row());
+    QSqlTableModel * model = static_cast<QSqlTableModel *>(ui->tableView->model());
+    model->removeRow(ui->tableView->currentIndex().row());
 }
 
 void MainWindow::on_sortCom_currentIndexChanged(int index)
 {
+    QSqlTableModel * model = static_cast<QSqlTableModel *>(ui->tableView->model());
     if(ui->ascRadio->isChecked())
-        tabModel->setSort(index,Qt::AscendingOrder);
+        model->setSort(index,Qt::AscendingOrder);
     else
-        tabModel->setSort(index,Qt::DescendingOrder);
-    tabModel->select();
+        model->setSort(index,Qt::DescendingOrder);
+    model->select();
 }
 
 
@@ -214,13 +242,14 @@ void MainWindow::on_decRadio_clicked()
 
 void MainWindow::on_searchButton_clicked()
 {
+    QSqlTableModel * model = static_cast<QSqlTableModel *>(ui->tableView->model());
     if(ui->searchEdit->text().isEmpty())
     {
-        tabModel->setFilter("");
-        tabModel->select();
+        model->setFilter("");
+        model->select();
     }
     else
-        tabModel->setFilter(ui->searchCom->currentText() + "=" + + '\'' + ui->searchEdit->text() + '\'');
+        model->setFilter(ui->searchCom->currentText() + "=" + + '\'' + ui->searchEdit->text()  + '\'');
 }
 
 
@@ -230,22 +259,28 @@ void MainWindow::on_searchEdit_textChanged(const QString &arg1)
 }
 
 
-void MainWindow::on_actCheckV_triggered()
+void MainWindow::on_actCheckV_triggered(bool is)
 {
-    view = new QTableView();
+    /*view = new QTableView();
+    view->setGeometry(this->geometry());
     view->setModel(vacModel);
-    view->show();
+    view->show();*/
+    if(is)
+    {
+        ui->tableView->setModel(vacModel);
+        ui->actGetVac->setEnabled(0);
+        ui->actCheckV->setText("查看人员");
+        statusLab.setHidden(1);
+        getFileName();
+    }
+    else {
+        ui->tableView->setModel(tabModel);
+        ui->actGetVac->setEnabled(1);
+        ui->actCheckV->setText("查看疫苗");
+        statusLab.setHidden(0);
+        statusLab.setEnabled(1);
+        getFileName();
+    }
 }
 
-
-void MainWindow::on_actAddV_triggered()
-{
-    vacModel->insertRow(tabModel->rowCount(),QModelIndex());
-}
-
-
-void MainWindow::on_actSaveV_triggered()
-{
-    vacModel->submitAll();
-}
 

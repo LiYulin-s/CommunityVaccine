@@ -15,6 +15,7 @@
 #include "qcomboboxdelegate.h"
 #include "qintspinboxdelegate.h"
 #include "qisvaccinedeldgate.h"
+#include "qtypedelegate.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -26,6 +27,7 @@ class MainWindow : public QMainWindow
 public slots:
     void on_currentChanged(const QModelIndex &currrent,const QModelIndex &previous);
     void on_currentRowChanged(const QModelIndex &currrent,const QModelIndex &previous);
+    void on_vac_currentChanged(const QModelIndex &currrent,const QModelIndex &previous);
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -54,11 +56,7 @@ private slots:
 
     void on_searchEdit_textChanged(const QString &arg1);
 
-    void on_actCheckV_triggered();
-
-    void on_actAddV_triggered();
-
-    void on_actSaveV_triggered();
+    void on_actCheckV_triggered(bool is);
 
 private:
     Ui::MainWindow *ui;
@@ -66,12 +64,14 @@ private:
     QSqlTableModel * tabModel;
     QSqlTableModel * vacModel;
     QItemSelectionModel * theSel;
+    QItemSelectionModel * vacSel;
     QDataWidgetMapper * dataMapper;
     void openTable();
     void getFileName();
     QComboBoxDelegate * sexDel;
     QIntSpinBoxDelegate * ageDel;
     QisVaccineDeldgate * vacDel;
+    QTypeDelegate * typeDel;
     QLabel statusLab;
     QStringList vacList = {"未接种","已接种1针","已接种2针"};
     QStringList vacType = {"灭活","重组RNA","腺病毒"};

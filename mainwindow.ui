@@ -109,8 +109,6 @@
    <addaction name="separator"/>
    <addaction name="actGetVac"/>
    <addaction name="actCheckV"/>
-   <addaction name="actAddV"/>
-   <addaction name="actSaveV"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actAdd">
@@ -141,13 +139,11 @@
    </property>
   </action>
   <action name="actCheckV">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>查看疫苗</string>
-   </property>
-  </action>
-  <action name="actAddV">
-   <property name="text">
-    <string>添加疫苗</string>
    </property>
   </action>
   <action name="actGetVac">
@@ -169,11 +165,6 @@
    </property>
    <property name="shortcut">
     <string>Esc</string>
-   </property>
-  </action>
-  <action name="actSaveV">
-   <property name="text">
-    <string>保存疫苗</string>
    </property>
   </action>
  </widget>

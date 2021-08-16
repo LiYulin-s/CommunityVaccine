@@ -12,13 +12,15 @@ SOURCES += \
     mainwindow.cpp \
     qcomboboxdelegate.cpp \
     qintspinboxdelegate.cpp \
-    qisvaccinedeldgate.cpp
+    qisvaccinedeldgate.cpp \
+    qtypedelegate.cpp
 
 HEADERS += \
     mainwindow.h \
     qcomboboxdelegate.h \
     qintspinboxdelegate.h \
-    qisvaccinedeldgate.h
+    qisvaccinedeldgate.h \
+    qtypedelegate.h
 
 FORMS += \
     mainwindow.ui
