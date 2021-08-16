@@ -144,23 +144,39 @@ void MainWindow::getFileName()
 
 void MainWindow::on_actGetVac_triggered()
 {
+    QDateTime date;
     QSqlRecord curRec = tabModel->record(ui->tableView->currentIndex().row());
     int isVac = curRec.value("isVaccined").toInt();
-    QString choice = QInputDialog::getItem(this,"选择疫苗","注射的疫苗：",vacnameList);
-    for(int i = 0; i < vacModel->rowCount();i++)
+    if (isVac)
     {
-        if(vacnameList[i] == choice)
+        QString choice = QInputDialog::getItem(this,"选择疫苗","注射的疫苗：",vacnameList);
+        QMessageBox::StandardButton butt = QMessageBox::information(this,"确认",QString("确认为%1注射%2疫苗？").arg(curRec.value("name").toString()).arg(choice),QMessageBox::Yes|QMessageBox::No);
+        if(butt == QMessageBox::No)
+            return;
+        for(int i = 0; i < vacModel->rowCount();i++)
         {
-            QDateTime date;
-            auto rec = vacModel->record(i);
-            rec.setValue("total",vacModel->record(i).value("total").toInt() - 1);
-            vacModel->setRecord(i,rec);
-            vacModel->submitAll();
-            curRec.setValue("vacType",vacType[rec.value("type").toInt()]);
-            curRec.setValue("time",curRec.value("time").toString() +date.currentDateTime().toString("yyyy年m月d日") + QTime::currentTime().toString("hh:mm:ssAP") + ' ');
+            if(vacnameList[i] == choice)
+            {
+                auto rec = vacModel->record(i);
+                rec.setValue("total",vacModel->record(i).value("total").toInt() - 1);
+                vacModel->setRecord(i,rec);
+                vacModel->submitAll();
+                curRec.setValue("vacType",vacType[rec.value("type").toInt()]);
+                curRec.setValue("time",curRec.value("time").toString() +date.currentDateTime().toString("yyyy年m月d日") + QTime::currentTime().toString("hh:mm:ssAP") + ' ');
+                break;
+            }
         }
-   }
-
+    }
+    else {
+        QMessageBox::StandardButton butt = QMessageBox::information(this,"确认",QString("确认为%1注射%2疫苗？").arg(curRec.value("name").toString()).arg(vacnameList[curRec.value("vacType").toInt()]),QMessageBox::Yes|QMessageBox::No);
+        if(butt == QMessageBox::No)
+            return;
+        curRec.setValue("time",curRec.value("time").toString() +date.currentDateTime().toString("yyyy年m月d日") + QTime::currentTime().toString("hh:mm:ssAP") + ' ');
+        auto rec = vacModel->record(curRec.value("vacType").toInt());
+        rec.setValue("total",vacModel->record(curRec.value("vacType").toInt()).value("total").toInt() - 1);
+        vacModel->setRecord(curRec.value("vacType").toInt(),rec);
+        vacModel->submitAll();
+    }
     isVac++;
     curRec.setValue("isVaccined",isVac);
     tabModel->setRecord(ui->tableView->currentIndex().row(),curRec);
