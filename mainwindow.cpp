@@ -295,6 +295,8 @@ void MainWindow::on_actCheckV_triggered(bool is)
         ui->tableView->setSelectionModel(vacSel);
         ui->actGetVac->setEnabled(0);
         ui->actCheckV->setText("查看人员");
+        QIcon icon(":/person.png");
+        ui->actCheckV->setIcon(icon);
         statusLab.setHidden(1);
         getFileName();
         ui->tableView->setItemDelegate(norDel);
@@ -312,6 +314,8 @@ void MainWindow::on_actCheckV_triggered(bool is)
         ui->actCheckV->setText("查看疫苗");
         statusLab.setHidden(0);
         statusLab.setEnabled(1);
+        QIcon icon(":/vaccine.png");
+        ui->actCheckV->setIcon(icon);
         getFileName();
         on_currentRowChanged(tabModel->index(0,1),tabModel->index(0,1));
         ui->tableView->setModel(tabModel);
