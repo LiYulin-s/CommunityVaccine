@@ -127,9 +127,9 @@ void MainWindow::openTable()
     //dataMapper->addMapping(ui->telEdit,tabModel->fieldIndex("tel"));
     //dataMapper->addMapping(ui->sexCom,tabModel->fieldIndex("sex"));
     //dataMapper->toFirst();
-    /*ui->tableView->setColumnHidden(tabModel->fieldIndex("isVaccined"),1);
+    ui->tableView->setColumnHidden(tabModel->fieldIndex("isVaccined"),1);
     ui->tableView->setColumnHidden(tabModel->fieldIndex("time"),1);
-    ui->tableView->setColumnHidden(tabModel->fieldIndex("vacType"),1);*/
+    ui->tableView->setColumnHidden(tabModel->fieldIndex("vacType"),1);
     ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("years"),ageDel);
     ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("sex"),sexDel);
     ui->tableView->setItemDelegateForColumn(1,norDel);
