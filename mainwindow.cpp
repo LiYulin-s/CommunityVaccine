@@ -11,12 +11,12 @@ void MainWindow::on_currentRowChanged(const QModelIndex &currrent, const QModelI
 {
     dataMapper->setCurrentIndex(currrent.row());
     QSqlRecord curRec = tabModel->record(currrent.row());
-    int vacName = curRec.value("vacType").toInt();
-    if(vacName == -1)
+    int ID = curRec.value("vacType").toInt();
+    if(curRec.value("vacType").toInt() == -1)
     {
         ui->actGetVac->setEnabled(1);
     }
-    else if(vacTimes[vacModel->record(vacName).value("type").toInt()] == curRec.value("isVaccined").toInt())
+    else if(vacID[ID].times == curRec.value("isVaccined").toInt())
         ui->actGetVac->setEnabled(0);
     else
         ui->actGetVac->setEnabled(1);
@@ -25,7 +25,7 @@ void MainWindow::on_currentRowChanged(const QModelIndex &currrent, const QModelI
     if (curRec.value("vacType").toInt() == -1)
         type = " ";
     else
-        type = vacnameList[curRec.value("vacType").toInt()];
+        type = vacID[curRec.value("vacType").toInt()].name;
     statusLab.setText(QString("%1 %2 %3 %4 %5").arg(curRec.value("name").toString()).arg(curRec.value("years").toInt()).arg(vacList[curRec.value("isVaccined").toInt()]).arg((curRec.value("time").toString())).arg(type));
 }
 
@@ -69,7 +69,7 @@ void MainWindow::on_actRefresh_triggered()
     DB = QSqlDatabase::addDatabase("QSQLITE");
     DB.setDatabaseName("aFile");*/
     DB = QSqlDatabase::addDatabase("QMYSQL");
-    QString passwd = QInputDialog::getText(this,"输入密码","密码",QLineEdit::NoEcho);
+    QString passwd = QInputDialog::getText(this,"输入密码","密码");
     DB.setHostName("sql.wsfdb.cn");
     DB.setUserName("2278Community");
     DB.setDatabaseName("2278community");
@@ -78,7 +78,7 @@ void MainWindow::on_actRefresh_triggered()
     if(!DB.open())
     {
         QMessageBox::warning(this,"失败","打开数据库失败");
-        return;
+        abort();
     }
     DB.exec("SET character_set_server = utf8;");
     openTable();
@@ -151,7 +151,10 @@ void MainWindow::getFileName()
     for(int i = 0; i < vacModel->rowCount();i++)
     {
          QSqlRecord vacRec = vacModel->record(i);
-         vacnameList.append(vacRec.value("name").toString() + ':' + vacType[vacRec.value("type").toInt()]);
+         vacID[vacRec.value("ID").toInt()].name = vacRec.value("name").toString();
+         vacID[vacRec.value("ID").toInt()].times = vacTimes[vacRec.value("type").toInt()];
+                 // .append(vacType[vacRec.value("type").toInt()]);
+         vacnameList.append(vacRec.value("name").toString() + ':' + vacType[vacRec.value("type").toInt()] + ":" + vacRec.value("ID").toString());
     }
 }
 
@@ -167,6 +170,7 @@ void MainWindow::on_actGetVac_triggered()
         QMessageBox::StandardButton butt = QMessageBox::information(this,"确认",QString("确认为%1注射%2疫苗？").arg(curRec.value("name").toString()).arg(choice),QMessageBox::Yes|QMessageBox::No);
         if(butt == QMessageBox::No)
             return;
+        int ID = choice.split(":")[2].toInt();
         for(int i = 0; i < vacModel->rowCount();i++)
         {
             if(vacnameList[i] == choice)
@@ -174,14 +178,14 @@ void MainWindow::on_actGetVac_triggered()
                 auto rec = vacModel->record(i);
                 rec.setValue("total",vacModel->record(i).value("total").toInt() - 1);
                 vacModel->setRecord(i,rec);
-                curRec.setValue("vacType",i);
+                curRec.setValue("vacType",ID);
                 curRec.setValue("time",curRec.value("time").toString() +date.currentDateTime().toString("yyyy年m月d日") + QTime::currentTime().toString("hh:mm:ssAP") + ' ');
                 break;
             }
         }
     }
     else {
-        QMessageBox::StandardButton butt = QMessageBox::information(this,"确认",QString("确认为%1注射%2疫苗？").arg(curRec.value("name").toString()).arg(vacnameList[curRec.value("vacType").toInt()]),QMessageBox::Yes|QMessageBox::No);
+        QMessageBox::StandardButton butt = QMessageBox::information(this,"确认",QString("确认为%1注射%2疫苗？").arg(curRec.value("name").toString()).arg(vacID[curRec.value("vacType").toInt()].name),QMessageBox::Yes|QMessageBox::No);
         if(butt == QMessageBox::No)
             return;
         curRec.setValue("time",curRec.value("time").toString() +date.currentDateTime().toString("yyyy年m月d日") + QTime::currentTime().toString("hh:mm:ssAP") + ' ');
@@ -301,6 +305,7 @@ void MainWindow::on_actCheckV_triggered(bool is)
         getFileName();
         ui->tableView->setItemDelegate(norDel);
         ui->tableView->setItemDelegateForColumn(vacModel->fieldIndex("type"),typeDel);
+        ui->tableView->setItemDelegateForColumn(vacModel->fieldIndex("total"),ageDel);
     }
     else
     {
@@ -323,4 +328,27 @@ void MainWindow::on_actCheckV_triggered(bool is)
     }
 }
 
+
+
+void MainWindow::on_actRead_triggered()
+{
+    QString fileName =  QFileDialog::getOpenFileName(this,"打开csv文件",QDir::currentPath(),"*.csv");
+    QFile aFile(fileName);
+    aFile.open(QIODevice::ReadOnly);
+    QTextStream out(&aFile);
+    while (!out.atEnd()) {
+        QString aLine = out.readLine();
+        QStringList list = aLine.split(",");
+        QSqlRecord rec;
+
+        tabModel->insertRecord(tabModel->rowCount(),rec);
+        for(int i = 0; i < list.length(); i++)
+        {
+
+            tabModel->setData(tabModel->index(tabModel->rowCount()-1,i),list[i]);
+
+        }
+
+    }
+}
 

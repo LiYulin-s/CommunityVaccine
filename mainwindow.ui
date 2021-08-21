@@ -117,6 +117,7 @@
    <addaction name="separator"/>
    <addaction name="actRemove"/>
    <addaction name="actAdd"/>
+   <addaction name="actRead"/>
    <addaction name="separator"/>
    <addaction name="actCommit"/>
    <addaction name="actGiveUp"/>
@@ -181,7 +182,8 @@
   <action name="actGetVac">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/vaccine.png</normaloff>:/vaccine.png</iconset>
+     <normaloff>:/vaccination.png</normaloff>
+     <normalon>:/vaccination.png</normalon>:/vaccination.png</iconset>
    </property>
    <property name="text">
     <string>注射疫苗</string>
@@ -210,6 +212,15 @@
    </property>
    <property name="shortcut">
     <string>Esc</string>
+   </property>
+  </action>
+  <action name="actRead">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/load.png</normaloff>:/load.png</iconset>
+   </property>
+   <property name="text">
+    <string>从csv文件导入</string>
    </property>
   </action>
  </widget>

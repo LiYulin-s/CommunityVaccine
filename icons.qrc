@@ -7,5 +7,7 @@
         <file>refresh.png</file>
         <file>remove.png</file>
         <file>add.png</file>
+        <file>load.png</file>
+        <file>vaccination.png</file>
     </qresource>
 </RCC>

@@ -11,6 +11,7 @@
 #include <QTime>
 #include <QTableView>
 #include <QDateTime>
+#include <QMap>
 
 #include "qcomboboxdelegate.h"
 #include "qintspinboxdelegate.h"
@@ -20,6 +21,8 @@
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
+struct vac{QString name;int times;};
 
 class MainWindow : public QMainWindow
 {
@@ -58,6 +61,8 @@ private slots:
 
     void on_actCheckV_triggered(bool is);
 
+    void on_actRead_triggered();
+
 private:
     Ui::MainWindow *ui;
     QSqlDatabase DB;
@@ -77,8 +82,8 @@ private:
     QStringList vacList = {"未接种","已接种1针","已接种2针","已接种3针"};
     QStringList vacType = {"灭活","重组RNA","腺病毒"};
     QTableView * view;
-    int vacTimes[4] = {2,3,1};
+    int vacTimes[3] = {2,3,1};
     QStringList vacnameList;
-
+    QMap<int,vac> vacID;
 };
 #endif // MAINWINDOW_H
