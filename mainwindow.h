@@ -72,11 +72,12 @@ private:
     QIntSpinBoxDelegate * ageDel;
     QisVaccineDeldgate * vacDel;
     QTypeDelegate * typeDel;
+    QItemDelegate  * norDel;
     QLabel statusLab;
-    QStringList vacList = {"未接种","已接种1针","已接种2针"};
+    QStringList vacList = {"未接种","已接种1针","已接种2针","已接种3针"};
     QStringList vacType = {"灭活","重组RNA","腺病毒"};
     QTableView * view;
-    int vacTimes[4] = {2,2,3,1};
+    int vacTimes[4] = {2,3,1};
     QStringList vacnameList;
 
 };

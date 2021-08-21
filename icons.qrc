@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>vaccine.png</file>
+        <file>person.png</file>
+        <file>undo.png</file>
+        <file>submit.png</file>
+        <file>refresh.png</file>
+        <file>remove.png</file>
+        <file>add.png</file>
+    </qresource>
+</RCC>

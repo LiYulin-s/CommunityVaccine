@@ -11,12 +11,22 @@ void MainWindow::on_currentRowChanged(const QModelIndex &currrent, const QModelI
 {
     dataMapper->setCurrentIndex(currrent.row());
     QSqlRecord curRec = tabModel->record(currrent.row());
-    if(curRec.value("isVaccined").toInt() == vacTimes[curRec.value("vacType").toInt()])
+    int vacName = curRec.value("vacType").toInt();
+    if(vacName == -1)
+    {
+        ui->actGetVac->setEnabled(1);
+    }
+    else if(vacTimes[vacModel->record(vacName).value("type").toInt()] == curRec.value("isVaccined").toInt())
         ui->actGetVac->setEnabled(0);
     else
         ui->actGetVac->setEnabled(1);
 
-    statusLab.setText(QString("%1 %2 %3 %4 %5").arg( curRec.value("name").toString()).arg(curRec.value("years").toInt()).arg(vacList[curRec.value("isVaccined").toInt()]).arg((curRec.value("time").toString())).arg(vacnameList[curRec.value("vacType").toInt()]));
+    QString type;
+    if (curRec.value("vacType").toInt() == -1)
+        type = " ";
+    else
+        type = vacnameList[curRec.value("vacType").toInt()];
+    statusLab.setText(QString("%1 %2 %3 %4 %5").arg(curRec.value("name").toString()).arg(curRec.value("years").toInt()).arg(vacList[curRec.value("isVaccined").toInt()]).arg((curRec.value("time").toString())).arg(type));
 }
 
 void MainWindow::on_vac_currentChanged(const QModelIndex &currrent, const QModelIndex &previous)
@@ -39,8 +49,10 @@ MainWindow::MainWindow(QWidget *parent)
     ageDel = new QIntSpinBoxDelegate(this);
     vacDel = new QisVaccineDeldgate(this);
     typeDel = new QTypeDelegate(vacType,this);
+    norDel = new QItemDelegate(this);
     ui->statusBar->addWidget(&statusLab);
     on_actRefresh_triggered();
+    this->setWindowTitle("Community Vaccines Manager");
 }
 
 MainWindow::~MainWindow()
@@ -57,10 +69,11 @@ void MainWindow::on_actRefresh_triggered()
     DB = QSqlDatabase::addDatabase("QSQLITE");
     DB.setDatabaseName("aFile");*/
     DB = QSqlDatabase::addDatabase("QMYSQL");
+    QString passwd = QInputDialog::getText(this,"输入密码","密码",QLineEdit::NoEcho);
     DB.setHostName("sql.wsfdb.cn");
     DB.setUserName("2278Community");
     DB.setDatabaseName("2278community");
-    DB.setPassword("5817518");
+    DB.setPassword(passwd);
     DB.setPort(3306);
     if(!DB.open())
     {
@@ -105,9 +118,6 @@ void MainWindow::openTable()
     connect(theSel,SIGNAL(currentRowChanged(QModelIndex,QModelIndex)),this,SLOT(on_currentRowChanged(QModelIndex,QModelIndex)));
     ui->tableView->setModel(tabModel);
     ui->tableView->setSelectionModel(theSel);
-    ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("years"),ageDel);
-    ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("sex"),sexDel);
-    ui->tableView->setItemDelegateForColumn(vacModel->fieldIndex("type"),typeDel);
    // ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("isVaccined"),vacDel);
     dataMapper = new QDataWidgetMapper();
     dataMapper->setModel(tabModel);
@@ -117,9 +127,12 @@ void MainWindow::openTable()
     //dataMapper->addMapping(ui->telEdit,tabModel->fieldIndex("tel"));
     //dataMapper->addMapping(ui->sexCom,tabModel->fieldIndex("sex"));
     //dataMapper->toFirst();
-    ui->tableView->setColumnHidden(tabModel->fieldIndex("isVaccined"),1);
+    /*ui->tableView->setColumnHidden(tabModel->fieldIndex("isVaccined"),1);
     ui->tableView->setColumnHidden(tabModel->fieldIndex("time"),1);
-    ui->tableView->setColumnHidden(tabModel->fieldIndex("vacType"),1);
+    ui->tableView->setColumnHidden(tabModel->fieldIndex("vacType"),1);*/
+    ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("years"),ageDel);
+    ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("sex"),sexDel);
+    ui->tableView->setItemDelegateForColumn(1,norDel);
     getFileName();
 }
 
@@ -129,6 +142,7 @@ void MainWindow::getFileName()
     ui->searchCom->clear();
     QSqlTableModel * model = static_cast<QSqlTableModel *>(ui->tableView->model());
     QSqlRecord emptyRec = model->record();
+    vacnameList.clear();
     for (int i = 0;i <emptyRec.count() ;i++ )
     {
         ui->sortCom->addItem(emptyRec.fieldName(i));
@@ -147,7 +161,7 @@ void MainWindow::on_actGetVac_triggered()
     QDateTime date;
     QSqlRecord curRec = tabModel->record(ui->tableView->currentIndex().row());
     int isVac = curRec.value("isVaccined").toInt();
-    if (isVac)
+    if (!isVac)
     {
         QString choice = QInputDialog::getItem(this,"选择疫苗","注射的疫苗：",vacnameList);
         QMessageBox::StandardButton butt = QMessageBox::information(this,"确认",QString("确认为%1注射%2疫苗？").arg(curRec.value("name").toString()).arg(choice),QMessageBox::Yes|QMessageBox::No);
@@ -160,8 +174,7 @@ void MainWindow::on_actGetVac_triggered()
                 auto rec = vacModel->record(i);
                 rec.setValue("total",vacModel->record(i).value("total").toInt() - 1);
                 vacModel->setRecord(i,rec);
-                vacModel->submitAll();
-                curRec.setValue("vacType",vacType[rec.value("type").toInt()]);
+                curRec.setValue("vacType",i);
                 curRec.setValue("time",curRec.value("time").toString() +date.currentDateTime().toString("yyyy年m月d日") + QTime::currentTime().toString("hh:mm:ssAP") + ' ');
                 break;
             }
@@ -175,7 +188,6 @@ void MainWindow::on_actGetVac_triggered()
         auto rec = vacModel->record(curRec.value("vacType").toInt());
         rec.setValue("total",vacModel->record(curRec.value("vacType").toInt()).value("total").toInt() - 1);
         vacModel->setRecord(curRec.value("vacType").toInt(),rec);
-        vacModel->submitAll();
     }
     isVac++;
     curRec.setValue("isVaccined",isVac);
@@ -205,15 +217,11 @@ void MainWindow::on_actAdd_triggered()
 void MainWindow::on_actCommit_triggered()
 {
     QSqlTableModel * model = static_cast<QSqlTableModel *>(ui->tableView->model());
-    bool res = model->submitAll();
-    if(!res)
+    bool res = vacModel->submitAll();
+    bool res_ = tabModel->submitAll();
+    if(!(res and res_))
     {
         QMessageBox::critical(this,"提交错误",model->lastError().text());
-    }
-    else
-    {
-        ui->actCommit->setEnabled(false);
-        ui->actGiveUp->setEnabled(false);
     }
 }
 
@@ -284,18 +292,30 @@ void MainWindow::on_actCheckV_triggered(bool is)
     if(is)
     {
         ui->tableView->setModel(vacModel);
+        ui->tableView->setSelectionModel(vacSel);
         ui->actGetVac->setEnabled(0);
         ui->actCheckV->setText("查看人员");
         statusLab.setHidden(1);
         getFileName();
+        ui->tableView->setItemDelegate(norDel);
+        ui->tableView->setItemDelegateForColumn(vacModel->fieldIndex("type"),typeDel);
     }
-    else {
+    else
+    {
         ui->tableView->setModel(tabModel);
-        ui->actGetVac->setEnabled(1);
+        ui->tableView->setColumnHidden(tabModel->fieldIndex("isVaccined"),1);
+        ui->tableView->setColumnHidden(tabModel->fieldIndex("time"),1);
+        ui->tableView->setColumnHidden(tabModel->fieldIndex("vacType"),1);
+        ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("years"),ageDel);
+        ui->tableView->setItemDelegateForColumn(tabModel->fieldIndex("sex"),sexDel);
+        ui->tableView->setItemDelegateForColumn(1,norDel);
         ui->actCheckV->setText("查看疫苗");
         statusLab.setHidden(0);
         statusLab.setEnabled(1);
         getFileName();
+        on_currentRowChanged(tabModel->index(0,1),tabModel->index(0,1));
+        ui->tableView->setModel(tabModel);
+        ui->tableView->setSelectionModel(theSel);
     }
 }
 

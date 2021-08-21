@@ -83,7 +83,17 @@
        </layout>
       </item>
       <item>
-       <widget class="QTableView" name="tableView"/>
+       <widget class="QTableView" name="tableView">
+        <property name="editTriggers">
+         <set>QAbstractItemView::AllEditTriggers</set>
+        </property>
+        <property name="dragEnabled">
+         <bool>false</bool>
+        </property>
+        <property name="gridStyle">
+         <enum>Qt::DashDotDotLine</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -112,6 +122,11 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actAdd">
+   <property name="icon">
+    <iconset>
+     <normalon>:/add.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>添加成员</string>
    </property>
@@ -120,6 +135,11 @@
    </property>
   </action>
   <action name="actRefresh">
+   <property name="icon">
+    <iconset>
+     <normalon>:/refresh.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>刷新</string>
    </property>
@@ -131,6 +151,10 @@
    </property>
   </action>
   <action name="actRemove">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/remove.png</normaloff>:/remove.png</iconset>
+   </property>
    <property name="text">
     <string>删除成员</string>
    </property>
@@ -142,16 +166,28 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/vaccine.png</normaloff>:/vaccine.png</iconset>
+   </property>
    <property name="text">
     <string>查看疫苗</string>
    </property>
   </action>
   <action name="actGetVac">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/vaccine.png</normaloff>:/vaccine.png</iconset>
+   </property>
    <property name="text">
     <string>注射疫苗</string>
    </property>
   </action>
   <action name="actCommit">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/submit.png</normaloff>:/submit.png</iconset>
+   </property>
    <property name="text">
     <string>提交</string>
    </property>
@@ -160,6 +196,11 @@
    </property>
   </action>
   <action name="actGiveUp">
+   <property name="icon">
+    <iconset>
+     <normalon>:/undo.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>放弃</string>
    </property>
@@ -168,6 +209,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
